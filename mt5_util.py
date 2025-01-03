@@ -1,69 +1,56 @@
 import MetaTrader5 as mt5
-from datetime import datetime, timedelta
+from datetime import datetime
+import pandas as pd
 
 class MT5Util:
     def __init__(self):
+        # Initialize connection to MetaTrader 5
         if not mt5.initialize():
-            print("Initialization failed")
+            print("initialize() failed")
             mt5.shutdown()
 
-    def get_last_n_candles(self, symbol, timeframe, n):
+    def get_ohlc(self, symbol, timeframe, n_candles):
         """
-        Retrieve the last n candles for a given symbol and timeframe.
-        
-        :param symbol: Trading symbol (e.g., 'EURUSD').
-        :param timeframe: Timeframe (e.g., mt5.TIMEFRAME_H1).
-        :param n: Number of candles to retrieve.
-        :return: List of candle data.
-        """
-        rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, n)
-        if rates is None:
-            print(f"Failed to get rates for {symbol} on timeframe {timeframe}")
-            return []
-        return rates
+        Get OHLC data for the specified symbol and timeframe.
 
-    def get_candle_by_time(self, symbol, timeframe, time):
+        :param symbol: Trading symbol (e.g., 'EURUSD')
+        :param timeframe: Timeframe (e.g., mt5.TIMEFRAME_H1)
+        :param n_candles: Number of candles to retrieve
+        :return: DataFrame containing OHLC data
         """
-        Retrieve candle data at a specific time.
-        
-        :param symbol: Trading symbol (e.g., 'EURUSD').
-        :param timeframe: Timeframe (e.g., mt5.TIMEFRAME_H1).
-        :param time: Specific datetime to retrieve the candle.
-        :return: Candle data or None if not found.
-        """
-        timestamp = int(time.timestamp())
-        rates = mt5.copy_rates_range(symbol, timeframe, time - timedelta(minutes=1), time + timedelta(minutes=1))
-        
-        if rates is None or len(rates) == 0:
-            print(f"No candle found for {symbol} at {time}")
+        rates = mt5.copy_rates_from_pos(symbol, timeframe, 0, n_candles)
+        if rates is None:
+            print(f"Failed to get rates for {symbol}")
             return None
-        return rates[-1]  # Return the last candle within the range
+        
+        # Convert to DataFrame
+        ohlc = pd.DataFrame(rates)
+        ohlc['time'] = pd.to_datetime(ohlc['time'], unit='s')
+        return ohlc[['time', 'open', 'high', 'low', 'close']]
 
-    def get_candles_in_range(self, symbol, timeframe, start_time, end_time):
+    def get_previous_n_candle_ohlc(self, symbol, timeframe, n):
         """
-        Retrieve candle data within a specific date range.
-        
-        :param symbol: Trading symbol (e.g., 'EURUSD').
-        :param timeframe: Timeframe (e.g., mt5.TIMEFRAME_H1).
-        :param start_time: Start datetime.
-        :param end_time: End datetime.
-        :return: List of candle data.
+        Get OHLC data of the previous nth candle.
+
+        :param symbol: Trading symbol (e.g., 'EURUSD')
+        :param timeframe: Timeframe (e.g., mt5.TIMEFRAME_H1)
+        :param n: The nth candle back from the current candle
+        :return: A dictionary containing OHLC values of the nth candle
         """
-        rates = mt5.copy_rates_range(symbol, timeframe, start_time, end_time)
+        ohlc_data = self.get_ohlc(symbol, timeframe, n + 1)  # Get n+1 candles to access the nth one
+        if ohlc_data is None or len(ohlc_data) < n + 1:
+            return None
         
-        if rates is None:
-            print(f"Failed to get rates for {symbol} between {start_time} and {end_time}")
-            return []
-        
-        return rates
+        nth_candle = ohlc_data.iloc[n]
+        return {
+            'time': nth_candle['time'],
+            'open': nth_candle['open'],
+            'high': nth_candle['high'],
+            'low': nth_candle['low'],
+            'close': nth_candle['close']
+        }
 
     def shutdown(self):
-        """Shutdown MT5 connection."""
+        """Shutdown the MetaTrader 5 connection."""
         mt5.shutdown()
 
-# Example usage
-if __name__ == "__main__":
-    util = MT5Util()
-    
-    # Get last 10 hourly candles for EURUSD
-    cand
