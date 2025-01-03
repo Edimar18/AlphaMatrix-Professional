@@ -23,9 +23,9 @@ class MT5Util:
             print(f"Failed to get rates for {symbol}")
             return None
         
-        # Convert to DataFrame
+        # Convert to DataFrame and localize to UTC
         ohlc = pd.DataFrame(rates)
-        ohlc['time'] = pd.to_datetime(ohlc['time'], unit='s')
+        ohlc['time'] = pd.to_datetime(ohlc['time'], unit='s').dt.tz_localize('UTC')
         return ohlc[['time', 'open', 'high', 'low', 'close']]
 
     def get_previous_n_candle_ohlc(self, symbol, timeframe, n):
@@ -53,4 +53,5 @@ class MT5Util:
     def shutdown(self):
         """Shutdown the MetaTrader 5 connection."""
         mt5.shutdown()
+
 
