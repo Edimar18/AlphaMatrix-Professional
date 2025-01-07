@@ -21,17 +21,32 @@ class TrainingDataPreparator:
         
         # Convert features to numpy arrays
         processed_features = {
+            # H1 Features
             'h1_ema_long': np.array([f['h1_ema_long'] for f in features]),
             'h1_ema_short': np.array([f['h1_ema_short'] for f in features]),
             'h1_bb_upper': np.array([f['h1_bb_upper'] for f in features]),
             'h1_bb_middle': np.array([f['h1_bb_middle'] for f in features]),
             'h1_bb_lower': np.array([f['h1_bb_lower'] for f in features]),
+            'h1_rsi': np.array([f['h1_rsi'] for f in features]),
+            'h1_macd': np.array([f['h1_macd'] for f in features]),
+            'h1_macd_signal': np.array([f['h1_macd_signal'] for f in features]),
+            'h1_macd_diff': np.array([f['h1_macd_diff'] for f in features]),
+            'h1_volume_ratio': np.array([f['h1_volume_ratio'] for f in features]),
+            'h1_volatility_ratio': np.array([f['h1_volatility_ratio'] for f in features]),
             'h1_ohlc': np.array([f['h1_ohlc'] for f in features]),
+            
+            # M5 Features
             'm5_ema_long': np.array([f['m5_ema_long'] for f in features]),
             'm5_ema_short': np.array([f['m5_ema_short'] for f in features]),
             'm5_bb_upper': np.array([f['m5_bb_upper'] for f in features]),
             'm5_bb_middle': np.array([f['m5_bb_middle'] for f in features]),
             'm5_bb_lower': np.array([f['m5_bb_lower'] for f in features]),
+            'm5_rsi': np.array([f['m5_rsi'] for f in features]),
+            'm5_macd': np.array([f['m5_macd'] for f in features]),
+            'm5_macd_signal': np.array([f['m5_macd_signal'] for f in features]),
+            'm5_macd_diff': np.array([f['m5_macd_diff'] for f in features]),
+            'm5_volume_ratio': np.array([f['m5_volume_ratio'] for f in features]),
+            'm5_volatility_ratio': np.array([f['m5_volatility_ratio'] for f in features]),
             'm5_ohlc': np.array([f['m5_ohlc'] for f in features])
         }
         
@@ -39,25 +54,14 @@ class TrainingDataPreparator:
         
         # Save data
         print("Saving processed data...")
-        save_path = os.path.join(DATA_PATH, f"{symbol}_processed")
-        np.save(
+        save_path = os.path.join(DATA_PATH, f"{symbol}_processed.npz")
+        np.savez(
             save_path,
-            h1_ema_long=processed_features['h1_ema_long'],
-            h1_ema_short=processed_features['h1_ema_short'],
-            h1_bb_upper=processed_features['h1_bb_upper'],
-            h1_bb_middle=processed_features['h1_bb_middle'],
-            h1_bb_lower=processed_features['h1_bb_lower'],
-            h1_ohlc=processed_features['h1_ohlc'],
-            m5_ema_long=processed_features['m5_ema_long'],
-            m5_ema_short=processed_features['m5_ema_short'],
-            m5_bb_upper=processed_features['m5_bb_upper'],
-            m5_bb_middle=processed_features['m5_bb_middle'],
-            m5_bb_lower=processed_features['m5_bb_lower'],
-            m5_ohlc=processed_features['m5_ohlc'],
+            **processed_features,  # Unpack all features
             labels=labels
         )
         
-        print(f"Data saved to {save_path}.npz")
+        print(f"Data saved to {save_path}")
         print(f"Total sequences: {len(labels)}")
         print("\nLabel distribution:")
         print(f"Strong Buy (1): {np.sum(labels == 1)}")
